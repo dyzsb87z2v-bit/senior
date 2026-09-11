@@ -3,7 +3,7 @@
  * language is a second file with the same keys, registered in ./index.js.
  */
 export default {
-  app: { title: 'Mittagessen-Service', subtitle: 'Bestellungen per Telefon', logout: 'Abmelden', role: { ADMIN: 'Verwaltung', STAFF: 'Mitarbeiter', KITCHEN: 'Küche' } },
+  app: { title: 'Mittagessen-Service', subtitle: 'Bestellungen per Telefon', logout: 'Abmelden', install: 'App installieren', role: { ADMIN: 'Verwaltung', STAFF: 'Mitarbeiter', KITCHEN: 'Küche' } },
   login: { email: 'E-Mail-Adresse', password: 'Passwort', submit: 'Anmelden' },
   nav: { today: 'HEUTE', orders: 'BESTELLUNGEN', kitchen: 'KÜCHE', customers: 'KUNDEN', menu: 'SPEISEPLAN', calls: 'ANRUFE', settings: 'EINSTELLUNGEN' },
   common: {

@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LogOut, Menu as MenuIcon, X, ShieldAlert, Bell } from 'lucide-react';
+import { LogOut, Menu as MenuIcon, X, ShieldAlert, Bell, Download } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { useAuth } from '@/lib/auth';
 import { canSee } from '@/lib/roles';
@@ -24,8 +24,22 @@ const NAV = [
   { to: '/mittag/einstellungen', key: 'settings', area: 'settings' },
 ];
 
+/** The browser's install prompt, kept until the user taps "App installieren". */
+function useInstallPrompt() {
+  const [prompt, setPrompt] = useState(null);
+  useEffect(() => {
+    const onPrompt = (e) => { e.preventDefault(); setPrompt(e); };
+    const onInstalled = () => setPrompt(null);
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onPrompt); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  return prompt ? async () => { prompt.prompt(); await prompt.userChoice.catch(() => {}); setPrompt(null); } : null;
+}
+
 export default function LunchLayout() {
   const { user, logout } = useAuth();
+  const install = useInstallPrompt();
   const role = user && user.active ? user.role : null;
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -56,6 +70,7 @@ export default function LunchLayout() {
             {role !== 'KITCHEN' && <AlertsBadge />}
           </nav>
           <div className="flex items-center gap-2">
+            {install && <button type="button" onClick={install} className="inline-flex min-h-[44px] items-center gap-2 rounded-md border-2 border-neutral-900 bg-neutral-900 px-3 text-sm font-semibold text-white"><Download size={16} /> {t('app.install')}</button>}
             <button type="button" onClick={logout} className="hidden min-h-[44px] items-center gap-2 rounded-md border-2 border-neutral-300 px-3 text-sm font-semibold hover:border-neutral-900 lg:inline-flex"><LogOut size={16} /> {t('app.logout')}</button>
             <button type="button" onClick={() => setOpen((o) => !o)} className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md border-2 border-neutral-300 lg:hidden" aria-label="Menü" aria-expanded={open}>{open ? <X size={24} /> : <MenuIcon size={24} />}</button>
           </div>

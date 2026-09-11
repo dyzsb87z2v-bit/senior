@@ -33,7 +33,7 @@ export async function buildApp(deps: AppDeps) {
 
   await app.register(helmet, {
     contentSecurityPolicy: {
-      directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'"], styleSrc: ["'self'", "'unsafe-inline'"], imgSrc: ["'self'", 'data:'], connectSrc: ["'self'"], fontSrc: ["'self'", 'data:'], objectSrc: ["'none'"], frameAncestors: ["'none'"], baseUri: ["'self'"], formAction: ["'self'"] },
+      directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'"], styleSrc: ["'self'", "'unsafe-inline'"], imgSrc: ["'self'", 'data:'], connectSrc: ["'self'"], fontSrc: ["'self'", 'data:'], objectSrc: ["'none'"], frameAncestors: ["'none'"], baseUri: ["'self'"], formAction: ["'self'"], manifestSrc: ["'self'"], workerSrc: ["'self'"] },
     },
     hsts: config.isProduction ? { maxAge: 15552000, includeSubDomains: true } : false,
     referrerPolicy: { policy: 'same-origin' },
@@ -66,7 +66,14 @@ export async function buildApp(deps: AppDeps) {
   await app.register(apiRoutes, { db, config, log, events });
 
   if (deps.webDist && fs.existsSync(deps.webDist)) {
-    await app.register(fastifyStatic, { root: deps.webDist, prefix: '/', index: ['index.html'], maxAge: '1h', immutable: false, wildcard: false });
+    await app.register(fastifyStatic, {
+      root: deps.webDist, prefix: '/', index: ['index.html'], maxAge: '1h', immutable: false, wildcard: false,
+      // Hashed assets may be cached for a year; the service worker and the manifest must always be re-checked.
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('sw.js') || filePath.endsWith('manifest.webmanifest')) res.header('Cache-Control', 'no-cache');
+        else if (filePath.includes('/assets/')) res.header('Cache-Control', 'public, max-age=31536000, immutable');
+      },
+    });
   }
   return { app, events };
 }

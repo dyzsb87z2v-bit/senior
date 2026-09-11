@@ -1,0 +1,6 @@
+# Automatic HTTPS in front of the app. Set DOMAIN in .env (e.g. mittag.example.de);
+# the domain's DNS must point at this server, ports 80 and 443 open.
+{$DOMAIN} {
+    encode zstd gzip
+    reverse_proxy app:3000
+}

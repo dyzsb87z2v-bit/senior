@@ -94,6 +94,13 @@ Die Servertests und Playwright erwarten eine Test-Datenbank unter
 `TEST_DATABASE_URL` (Standard `postgres://postgres@127.0.0.1:5433/senior_lunch_test`).
 Ohne heruntergeladene Browser: `PLAYWRIGHT_CHROMIUM_PATH=/pfad/zu/chromium`.
 
+## Auf dem Handy oder Tablet
+
+Die Oberfläche ist als App installierbar (PWA): von einer HTTPS-Adresse
+öffnen, anmelden, **App installieren** (Android/Chrome) oder Teilen → **Zum
+Home-Bildschirm** (iPhone). `docker compose up -d --build` bringt mit Caddy
+gleich HTTPS mit (`DOMAIN` in `.env`). Anleitung: [`docs/mobile.md`](docs/mobile.md).
+
 ## Betrieb
 
 Umgebungsvariablen, Migrationen, Health-Check, Logs, Backup und Aufbewahrung:
