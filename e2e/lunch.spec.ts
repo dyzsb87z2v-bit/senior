@@ -89,6 +89,8 @@ test('a typed call goes through the real dialog and reaches the dashboard live',
   await expect(page.getByText(/erfolgreich aufgenommen/)).toBeVisible();
 
   // The dashboard was never reloaded: the order arrived over the event stream.
+  // (Brought to the front first: an emulated mobile tab in the background is frozen by the browser.)
+  await dashboard.bringToFront();
   await expect(dashboard.getByText(`#${code}`).first()).toBeVisible({ timeout: 15_000 });
   await expect(dashboard.locator('article', { hasText: `#${code}` }).getByText('OHNE ZWIEBELN').first()).toBeVisible();
   await expect(dashboard.getByText(/Neue Bestellung/).first()).toBeVisible();
@@ -128,6 +130,6 @@ test('admin manages settings and the team', async ({ page }) => {
   await page.getByLabel(/Name im Gruß/).fill('Haus Sonnenschein');
   await page.getByRole('button', { name: 'Speichern' }).first().click();
   await expect(page.getByText('Gespeichert').first()).toBeVisible();
-  await expect(page.getByText('staff@e2e.de')).toBeVisible();
+  await expect(page.getByText('staff@e2e.de', { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/api\/voice\/twilio/).first()).toBeVisible();
 });

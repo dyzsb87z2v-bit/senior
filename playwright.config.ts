@@ -37,7 +37,7 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test', PORT: '3100', HOST: '127.0.0.1', PUBLIC_URL: 'http://127.0.0.1:3100',
       DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgres://postgres@127.0.0.1:5433/senior_lunch_test',
-      SESSION_SECRET: 'e2e-session-secret-that-is-long-enough-1234', TWILIO_AUTH_TOKEN: 'e2e-twilio-token', LUNCH_HANDOFF_NUMBER: '+493012345678', LOG_LEVEL: 'warn', LOGIN_RATE_LIMIT: '1000',
+      SESSION_SECRET: 'e2e-session-secret-that-is-long-enough-1234', TWILIO_AUTH_TOKEN: 'e2e-twilio-token', LUNCH_HANDOFF_NUMBER: '+493012345678', LOG_LEVEL: 'warn', LOGIN_RATE_LIMIT: '1000', RATE_LIMIT_PER_MINUTE: '100000',
     },
   },
 });

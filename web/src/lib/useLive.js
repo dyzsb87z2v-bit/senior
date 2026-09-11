@@ -20,7 +20,14 @@ function ensureStream() {
     for (const l of listeners) l({ type, ...(data || {}) });
   };
   for (const type of ['order', 'alert', 'call', 'menu', 'customer', 'settings']) source.addEventListener(type, handler(type));
-  source.addEventListener('hello', () => { connected = true; for (const l of connectionListeners) l(true); });
+  // On every (re)connection, every screen refetches: events sent while the
+  // connection was down (a sleeping tablet, a network blip) are not lost.
+  source.addEventListener('hello', () => {
+    const wasDown = !connected;
+    connected = true;
+    for (const l of connectionListeners) l(true);
+    if (wasDown) for (const l of listeners) l({ type: 'reconnect' });
+  });
   source.onerror = () => { connected = false; for (const l of connectionListeners) l(false); };
 }
 
@@ -50,7 +57,7 @@ export function useLiveQuery(url, types, pick = (d) => d, deps = []) {
   useEffect(() => {
     ensureStream();
     const listener = (e) => {
-      if (!types.includes(e.type)) return;
+      if (e.type !== 'reconnect' && !types.includes(e.type)) return;
       setLastEvent(e);
       clearTimeout(timer.current);
       timer.current = setTimeout(load, 200);

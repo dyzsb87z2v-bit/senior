@@ -26,6 +26,8 @@ const Env = z.object({
   LUNCH_PUBLIC_STATUS_URL: z.string().default(''),
   /** Development only: accept unsigned Twilio requests (e.g. from a local simulator). Never in production. */
   LUNCH_ALLOW_UNSIGNED_WEBHOOKS: z.enum(['true', 'false']).default('false'),
+  /** Requests per minute per IP across the API (several tablets may share one address). */
+  RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(60).max(100000).default(1200),
   /** Login attempts per minute per IP. */
   LOGIN_RATE_LIMIT: z.coerce.number().int().min(3).max(1000).default(10),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),

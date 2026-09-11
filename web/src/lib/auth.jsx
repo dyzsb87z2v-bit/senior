@@ -7,7 +7,9 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const refresh = useCallback(async () => {
-    try { const r = await api.get('/api/auth/me'); setUser(r.user || false); } catch { setUser(false); }
+    try { const r = await api.get('/api/auth/me'); setUser(r.user || false); }
+    // Only a definite "not signed in" logs the user out; a hiccup (rate limit, network) keeps the current state.
+    catch (e) { setUser((u) => (e.status === 401 || e.status === 403 || u === null ? false : u)); }
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
   const login = useCallback(async (email, password) => { const r = await api.post('/api/auth/login', { email, password }); setUser(r.user); return r.user; }, []);

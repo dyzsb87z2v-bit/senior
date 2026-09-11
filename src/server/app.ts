@@ -38,7 +38,7 @@ export async function buildApp(deps: AppDeps) {
     hsts: config.isProduction ? { maxAge: 15552000, includeSubDomains: true } : false,
     referrerPolicy: { policy: 'same-origin' },
   });
-  await app.register(rateLimit, { global: true, max: 300, timeWindow: '1 minute' });
+  await app.register(rateLimit, { global: true, max: config.RATE_LIMIT_PER_MINUTE, timeWindow: '1 minute' });
   await app.register(cookie, { secret: config.SESSION_SECRET });
   await app.register(formbody);
   await app.register(authPlugin, { publicOrigin: new URL(config.PUBLIC_URL).origin });
