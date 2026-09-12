@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testanruf Mittagessen-Service</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ground: #F2F4F0; --surface: #FFFFFF; --surface-2: #E9ECE6; --line: #D5D9D1;
+    --ink: #1B1E1A; --muted: #626860; --accent: #1F6B4A; --accent-ink: #FFFFFF;
+    --new: #B8770F; --new-bg: #FBF0DA; --warn: #A93A2C; --warn-bg: #F9E4E0; --ok: #1F6B4A; --ok-bg: #DDEFE4;
+    --phone: #1B1E1A; --phone-ink: #F2F4F0; --bubble-ai: #2A2E29; --bubble-me: #1F6B4A;
+    --display: 'Bricolage Grotesque', 'Helvetica Neue', Arial, sans-serif;
+    --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #131512; --surface: #1C1F1B; --surface-2: #262A25; --line: #343930;
+      --ink: #ECEFEA; --muted: #9AA096; --accent: #5FB98B; --accent-ink: #0F1A13;
+      --new: #E0A33A; --new-bg: #3A2E14; --warn: #E07A6A; --warn-bg: #3E1F1A; --ok: #5FB98B; --ok-bg: #16301F;
+      --phone: #0E100E; --phone-ink: #ECEFEA; --bubble-ai: #232823; --bubble-me: #2E8A5F;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #131512; --surface: #1C1F1B; --surface-2: #262A25; --line: #343930;
+    --ink: #ECEFEA; --muted: #9AA096; --accent: #5FB98B; --accent-ink: #0F1A13;
+    --new: #E0A33A; --new-bg: #3A2E14; --warn: #E07A6A; --warn-bg: #3E1F1A; --ok: #5FB98B; --ok-bg: #16301F;
+    --phone: #0E100E; --phone-ink: #ECEFEA; --bubble-ai: #232823; --bubble-me: #2E8A5F;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.45; padding-inline: 16px; padding-block: 20px 48px; }
+  h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
+  h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1; }
+  h2 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  header.top { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .sub { color: var(--muted); max-width: 62ch; }
+  .fa { direction: rtl; text-align: right; color: var(--muted); font-size: 15px; max-width: 62ch; align-self: flex-end; }
+  .grid { display: grid; gap: 20px; grid-template-columns: 1fr; }
+  @media (min-width: 900px) { .grid { grid-template-columns: 420px 1fr; align-items: start; } .phone { position: sticky; top: 16px; } }
+  .tabs { display: none; gap: 6px; margin-bottom: 12px; }
+  .tabs button { flex: 1; min-height: 44px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--body); border-radius: 8px; position: relative; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+  .tabs .dot { position: absolute; top: 8px; right: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--new); display: none; }
+  @media (max-width: 899px) { .tabs { display: flex; } .pane[hidden] { display: none !important; } }
+  @media (min-width: 900px) { .pane[hidden] { display: block !important; } }
+
+  /* The telephone */
+  .phone { background: var(--phone); color: var(--phone-ink); border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .phone-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .phone-head .num { font-family: var(--display); font-weight: 700; font-size: 18px; }
+  .phone-head .stage { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; font-variant-numeric: tabular-nums; }
+  .log { display: flex; flex-direction: column; gap: 8px; max-height: 46vh; min-height: 220px; overflow-y: auto; padding: 4px 2px; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { .log { scroll-behavior: auto; } }
+  .msg { max-width: 88%; padding: 10px 13px; border-radius: 16px; font-size: 16.5px; line-height: 1.4; white-space: pre-wrap; }
+  .msg.ai { background: var(--bubble-ai); border-bottom-left-radius: 6px; align-self: flex-start; }
+  .msg.me { background: var(--bubble-me); color: #fff; border-bottom-right-radius: 6px; align-self: flex-end; }
+  .msg.sys { align-self: center; font-size: 13px; opacity: 0.75; background: transparent; padding: 2px 0; text-align: center; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); color: var(--phone-ink); border-radius: 999px; padding: 8px 12px; font: 500 14px var(--body); min-height: 38px; }
+  .chips button:hover { background: rgba(255,255,255,0.14); }
+  form.say { display: flex; gap: 8px; }
+  form.say input { flex: 1; min-width: 0; min-height: 48px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: var(--phone-ink); padding: 0 14px; font: 400 17px var(--body); }
+  form.say input::placeholder { color: rgba(255,255,255,0.5); }
+  form.say button, .phone .primary { min-height: 48px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font: 600 16px var(--body); padding: 0 16px; }
+  .phone .ghost { min-height: 44px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: var(--phone-ink); border-radius: 12px; font: 500 15px var(--body); padding: 0 14px; }
+  .phone-actions { display: flex; gap: 8px; justify-content: space-between; align-items: center; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--new); outline-offset: 2px; }
+  .voice { display: flex; gap: 8px; align-items: center; }
+  .voice .mic { flex: 1; min-height: 56px; border: 0; border-radius: 14px; background: var(--accent); color: var(--accent-ink); font: 700 17px var(--body); display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .voice .mic[data-listening="true"] { background: var(--warn); color: #fff; }
+  .voice .mic:disabled { opacity: 0.5; }
+  .voice .mic svg { width: 22px; height: 22px; }
+  .voice .tts { min-height: 56px; min-width: 56px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: var(--phone-ink); border-radius: 14px; font: 500 14px var(--body); }
+  .voice .tts[aria-pressed="true"] { background: rgba(255,255,255,0.14); }
+  .hint { font-size: 13px; opacity: 0.7; }
+  .framed { display: none; background: var(--new-bg); color: var(--new); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 15px; line-height: 1.4; }
+  .framed a, .framed button { display: inline-block; margin-top: 8px; min-height: 44px; padding: 0 14px; line-height: 44px; border-radius: 10px; background: var(--ink); color: var(--ground); font: 600 15px var(--body); text-decoration: none; border: 0; }
+  .framed code { display: block; margin-top: 8px; font-size: 12px; word-break: break-all; color: var(--ink); }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+  .voice .mic[data-listening="true"] { animation: pulse 1.2s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { .voice .mic[data-listening="true"] { animation: none; } }
+
+  /* The restaurant */
+  .rest { display: flex; flex-direction: column; gap: 22px; }
+  .section { display: flex; flex-direction: column; gap: 10px; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .counts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { font-size: 12.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-variant-numeric: tabular-nums; }
+  .pill.NEW { background: var(--new-bg); color: var(--new); border-color: transparent; }
+  .pill.CONFIRMED, .pill.PREPARING { background: var(--surface-2); color: var(--ink); border-color: transparent; }
+  .pill.READY, .pill.DELIVERED { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+  .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .card.review { border-color: var(--warn); }
+  .card .who { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .card .code { font-family: var(--display); font-weight: 800; font-size: 24px; font-variant-numeric: tabular-nums; }
+  .card .name { color: var(--muted); font-size: 15px; }
+  .card .dish { font-family: var(--display); font-weight: 700; font-size: 19px; text-transform: uppercase; line-height: 1.15; }
+  .card .sides { color: var(--muted); }
+  .card .mods { color: var(--warn); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
+  .card .note { font-size: 14px; color: var(--warn); }
+  .card .room { font-size: 14px; color: var(--muted); }
+  .card .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .card .actions button { min-height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--ground); font: 600 14px var(--body); }
+  .card .actions button.cancel { background: transparent; color: var(--warn); border-color: var(--warn); }
+  .kitchen .card { border-width: 3px; border-color: var(--ink); padding: 18px; }
+  .kitchen .card.ready { border-color: var(--ok); }
+  .kitchen .code { font-size: 34px; }
+  .kitchen .dish { font-size: 24px; }
+  .kitchen .sides { font-size: 19px; color: var(--ink); }
+  .kitchen .mods { font-size: 20px; }
+  .kitchen .room { font-size: 19px; color: var(--ink); font-weight: 600; }
+  .kitchen .actions button { width: 100%; min-height: 54px; font-size: 18px; text-transform: uppercase; }
+  .empty { border: 1px dashed var(--line); border-radius: 12px; padding: 22px; text-align: center; color: var(--muted); }
+  .alerts { display: flex; flex-direction: column; gap: 8px; }
+  .alert { border-radius: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); font-size: 15px; display: flex; flex-direction: column; gap: 2px; }
+  .alert.critical { background: var(--warn-bg); border-color: transparent; }
+  .alert .kind { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .menu { display: grid; gap: 8px; }
+  .menu .item { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .menu .pos { font-family: var(--display); font-weight: 800; font-size: 22px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .menu .nm { font-weight: 600; }
+  .menu .det { color: var(--muted); font-size: 14px; }
+  .customers { display: flex; gap: 8px; flex-wrap: wrap; }
+  .customers .c { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 15px; }
+  .customers .c b { font-family: var(--display); font-size: 18px; font-variant-numeric: tabular-nums; }
+  .foot { margin-top: 26px; color: var(--muted); font-size: 14px; max-width: 70ch; }
+  .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--ink); color: var(--ground); padding: 12px 16px; border-radius: 12px; font-weight: 600; box-shadow: 0 8px 30px rgba(0,0,0,0.25); max-width: calc(100vw - 32px); z-index: 20; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Testanruf Mittagessen-Service</h1>
+    <p class="sub">Der echte Sprachdialog des Bestellsystems — mit Mikrofon und Stimme des Handys statt Telefonleitung. Links das Telefon des Bewohners, rechts das Restaurant. Ablauf: Kundennummer → Gericht → „Ja“.</p>
+    <p class="fa">این همان موتور مکالمهٔ برنامه است. دکمهٔ سبز «Sprechen» را بزنید و به آلمانی حرف بزنید (کد مشتری، بعد غذا، بعد «Ja»)؛ دستیار با صدا جواب می‌دهد. تایپ کردن هم ممکن است. سفارش در بخش Restaurant ظاهر می‌شود.</p>
+  </header>
+
+  <div class="framed" id="framed">
+    Für das Mikrofon muss diese Seite als eigene Seite geöffnet sein, nicht eingebettet.<br>
+    <span dir="rtl">برای کارکردن میکروفون، صفحه باید مستقیم در مرورگر باز شود، نه داخل قاب Claude. روی دکمه بزنید یا آدرس زیر را در Safari/Chrome باز کنید.</span>
+    <a id="open-tab" href="#" target="_blank" rel="noopener">In neuem Tab öffnen / باز کردن در تب جدید</a>
+    <code id="own-url"></code>
+  </div>
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-phone" aria-selected="true">Telefon</button>
+    <button type="button" role="tab" id="tab-rest" aria-selected="false">Restaurant <span class="dot" id="rest-dot"></span></button>
+  </div>
+
+  <div class="grid">
+    <section class="pane phone" id="pane-phone" aria-label="Telefon">
+      <div class="phone-head">
+        <span class="num">030 · Mittagessen-Service</span>
+        <span class="stage" id="stage">Bereit</span>
+      </div>
+      <div class="log" id="log" aria-live="polite"></div>
+      <div class="voice">
+        <button type="button" class="mic" id="mic" data-listening="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>
+          <span id="mic-label">Sprechen</span>
+        </button>
+        <button type="button" class="tts" id="tts" aria-pressed="true" title="Stimme des Assistenten">Ton an</button>
+      </div>
+      <p class="hint" id="voice-hint">Antippen, sprechen, kurz warten. Deutsch. Der Assistent antwortet mit Stimme.</p>
+      <div class="chips" id="chips"></div>
+      <form class="say" id="say">
+        <input id="utterance" type="text" autocomplete="off" placeholder="Sprechen … (tippen)" aria-label="Was der Anrufer sagt">
+        <button type="submit" id="send">Sagen</button>
+      </form>
+      <div class="phone-actions">
+        <button type="button" class="ghost" id="silence">Schweigen</button>
+        <button type="button" class="primary" id="newcall">Neuer Anruf</button>
+      </div>
+    </section>
+
+    <section class="pane rest" id="pane-rest" aria-label="Restaurant" hidden>
+      <div class="section">
+        <div class="section-head"><h2>Heute — Neue Bestellungen</h2><div class="counts" id="counts"></div></div>
+        <div class="cards" id="orders"></div>
+      </div>
+      <div class="section kitchen">
+        <div class="section-head"><h2>Küche</h2></div>
+        <div class="cards" id="kitchen"></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><h2>Meldungen</h2></div>
+        <div class="alerts" id="alerts"></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><h2>Speiseplan heute</h2></div>
+        <div class="menu" id="menu"></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><h2>Kunden (Beispiele)</h2></div>
+        <div class="customers" id="customers"></div>
+      </div>
+    </section>
+  </div>
+
+  <p class="foot">Diese Seite enthält die Dialog-Engine des Systems unverändert (Kundennummern, Speiseplan-Abgleich, Änderungen, Bestätigung, Weiterleitung). Spracherkennung und Stimme kommen hier vom Browser des Handys (Web Speech API); im echten System übernimmt das Twilio über die Telefonleitung, und Claude Fable 5.1 versteht zusätzlich freie Sätze. Die Regel-Erkennung ist dieselbe.</p>
+</div>
+
+<script>var Lunch=(()=>{var F=Object.defineProperty;var Ne=Object.getOwnPropertyDescriptor;var Oe=Object.getOwnPropertyNames;var Te=Object.prototype.hasOwnProperty;var Ae=(e,n)=>{for(var t in n)F(e,t,{get:n[t],enumerable:!0})},Ee=(e,n,t,i)=>{if(n&&typeof n=="object"||typeof n=="function")for(let r of Oe(n))!Te.call(e,r)&&r!==t&&F(e,r,{get:()=>n[r],enumerable:!(i=Ne(n,r))||i.enumerable});return e};var xe=e=>Ee(F({},"__esModule",{value:!0}),e);var tn={};Ae(tn,{initialState:()=>ye,runTurn:()=>Ce,understandWithRules:()=>de});var _e={\u00E4:"ae",\u00F6:"oe",\u00FC:"ue",\u00DF:"ss"};function b(e){return(e||"").toLowerCase().replace(/[äöüß]/g,n=>_e[n]).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9\s-]/g," ").replace(/-/g," ").replace(/\s+/g," ").trim()}function M(e){let n=b(e);return n?n.split(" "):[]}var ze=new Set(["ich","haette","hatte","gerne","gern","bitte","moechte","mochte","nehme","nehm","will","fuer","mich","das","die","der","den","dem","des","ein","eine","einen","einem","einer","mit","und","oder","aber","heute","mal","dann","also","hm","aeh","ja","so","auch","noch","zum","zur","vom","von","am","im","essen","gericht","menue","menu","mittagessen","bestellen","bestellung","haben","habe","wir","sie","es","ist","nummer","nur","einfach","wieder","gut","okay","ok","danke","nein","nicht","hallo","guten","tag","morgen","mir","uns","wuerde","wurde","ganz","lieber","am","liebsten","doch","schon"]);function U(e){return M(e).filter(n=>!ze.has(n)&&n.length>1)}function $e(e,n){if(e===n)return 1;if(e.length<2||n.length<2)return 0;let t=a=>{let s=new Map;for(let l=0;l<a.length-1;l++){let c=a.slice(l,l+2);s.set(c,(s.get(c)||0)+1)}return s},i=t(e),r=t(n),o=0;for(let[a,s]of i)o+=Math.min(s,r.get(a)||0);return 2*o/(e.length-1+n.length-1)}function y(e){let n=b(e);return n.length>5&&n.endsWith("en")?n=n.slice(0,-2):n.length>4&&(n.endsWith("n")||n.endsWith("e")||n.endsWith("s"))&&(n=n.slice(0,-1)),n}function W(e,n){let t=y(e),i=0;for(let r of M(n)){let o=y(r),a=o===t?1:$e(o,t);a>i&&(i=a)}return i}function k(e,n){let t=" "+b(e)+" ",i=" "+b(n)+" ";return i.trim().length>0&&t.includes(i)}function N(e,n){for(let t of n)if(k(e,t))return t;return null}function R(e){return e&&e.charAt(0).toUpperCase()+e.slice(1)}function Ke(e,n){let t=e.length,i=n.length;if(!t)return i;if(!i)return t;let r=Array.from({length:i+1},(o,a)=>a);for(let o=1;o<=t;o++){let a=[o];for(let s=1;s<=i;s++)a[s]=Math.min(r[s]+1,a[s-1]+1,r[s-1]+(e[o-1]===n[s-1]?0:1));r=a}return r[i]}function V(e,n){let t=b(e),i=b(n);return!t||!i?0:1-Ke(t,i)/Math.max(t.length,i.length)}var C={null:0,nul:0,zero:0,eins:1,ein:1,eine:1,einen:1,einer:1,einem:1,zwei:2,zwo:2,drei:3,vier:4,fuenf:5,funf:5,sechs:6,sieben:7,acht:8,neun:9,zehn:10,elf:11,zwoelf:12,zwolf:12,dreizehn:13,vierzehn:14,fuenfzehn:15,funfzehn:15,sechzehn:16,siebzehn:17,achtzehn:18,neunzehn:19},_={zwanzig:20,dreissig:30,dreisig:30,vierzig:40,fuenfzig:50,funfzig:50,sechzig:60,siebzig:70,achtzig:80,neunzig:90};function O(e){let n=b(e).replace(/\s/g,"");if(!n)return null;if(/^\d+$/.test(n))return Number(n);if(n in C)return C[n];if(n in _)return _[n];let t=n.match(/^(.*?)hundert(.*)$/);if(t){let[,o,a]=t,s=o===""||o==="ein"?1:o in C&&C[o]>=1&&C[o]<=9?C[o]:null;if(s===null)return null;if(a==="")return s*100;let l=O(a);return l===null||l>=100?null:s*100+l}let i=n.match(/^(.*?)tausend(.*)$/);if(i){let[,o,a]=i,s=o===""||o==="ein"?1:O(o);if(s===null||s>=1e3)return null;if(a==="")return s*1e3;let l=O(a);return l===null||l>=1e3?null:s*1e3+l}let r=n.match(/^(.+?)und(.+)$/);if(r){let[,o,a]=r;if(o in C&&C[o]<10&&a in _)return C[o]+_[a]}return null}function Pe(e){return e>=100&&e%100===0}function qe(e){if(!e.length)return null;let n="",t=0;for(;t<e.length;){let i=e[t],r=e[t+1];if(Pe(i)&&r!==void 0&&r<100&&!(t+2<e.length&&e.slice(t+1).every(o=>o<10))){n+=String(i+r),t+=2;continue}n+=String(i),t+=1}return n}var X=["kundennummer","nummer","kundencode","code","kennnummer"];function B(e){let n=b(e).split(" ").filter(Boolean),t=[],i=null,r=!1;for(let c of n){let m=O(c);if(m!==null){i||(i={values:[],keyed:r,allDigits:!0}),i.values.push(m),/^\d+$/.test(c)||(i.allDigits=!1),r=!1;continue}i&&(t.push(i),i=null),r=X.includes(c)||r&&["ist","lautet","die","meine"].includes(c),X.includes(c)&&(r=!0)}i&&t.push(i);let o=[];for(let c of t){let m=qe(c.values);if(!m||m.length>6)continue;let p=c.allDigits?.95:.9;c.keyed&&(p=Math.min(1,p+.05)),o.push({code:m,confidence:p,keyed:c.keyed})}let a=o.filter(c=>c.keyed);if(a.length===1)return a;let s=new Map;for(let c of o){let m=s.get(c.code);(!m||m.confidence<c.confidence)&&s.set(c.code,c)}let l=[...s.values()];return l.length>1?l.map(c=>({...c,confidence:c.confidence*.6})):l}var Fe=["null","eins","zwei","drei","vier","f\xFCnf","sechs","sieben","acht","neun"];function z(e){return String(e).split("").map(n=>Fe[Number(n)]??n).join(" ")}var j={erste:1,ersten:1,erstes:1,zweite:2,zweiten:2,zweites:2,dritte:3,dritten:3,drittes:3,vierte:4,vierten:4,viertes:4,fuenfte:5,fuenften:5,fuenftes:5,sechste:6,sechsten:6,sechstes:6};function ee(e,n){let t=b(e).split(" ").filter(Boolean);for(let r=0;r<t.length;r++){let o=t[r];if(o in j&&j[o]<=n)return j[o]}let i=new Set(["nummer","menue","menu","gericht","essen","die","das","nehme","nehm","bitte","moechte","gerne","mal"]);for(let r=0;r<t.length;r++){let o=O(t[r]);if(o===null||o<1||o>n)continue;let a=t[r-1],s=t[r+1];if(!(s&&["mal","portionen","portion","personen","stueck","x"].includes(s))&&!(a&&["fuer","x"].includes(a))&&(!a||i.has(a)||r===t.length-1))return o}return null}function ne(e){let n=b(e),t=n.match(/\b(\w+?)(?:\s?mal|\s?x|\s+portionen|\s+portion|\s+stueck)\b/)||n.match(/\bfuer\s+(\w+)\s+personen\b/);if(t){let i=O(t[1]);if(i!==null&&i>=1)return i;if(["einmal","ein"].includes(t[1]))return 1}return/\bzweimal\b/.test(n)?2:/\bdreimal\b/.test(n)?3:null}var $=new Set(["mit","und","oder","an","auf","in","dazu","sowie"]),te={vegetarian:["vegetarisch","vegetarische","vegetarisches","vegetarischen","vegi","veggie","ohne fleisch","fleischlos"],soup:["suppe"],dessert:["nachtisch","dessert","nachspeise"]};function H(e){let n=M(e.nameDe),t=n.indexOf("mit"),i=(t>=0?n.slice(0,t):n).filter(s=>!$.has(s)&&s.length>2),r=(t>=0?n.slice(t+1):[]).filter(s=>!$.has(s)&&s.length>2),o=(e.components||[]).flatMap(s=>M(s)).filter(s=>!$.has(s)),a=(e.aliases||[]).flatMap(s=>M(s)).filter(s=>!$.has(s));return{head:[...new Set([...i,...a])],sides:[...new Set([...r,...o])]}}function Ue(e,n){let t=U(e),i=b(e),r=Math.max(0,...n.map(a=>a.position)),o=ee(e,r);return n.map(a=>{let s=0,l="";o!==null&&a.position===o&&(s=.96,l="position"),k(e,a.nameDe)&&(s=Math.max(s,.97),l=l||"full-name");let{head:c,sides:m}=H(a);for(let d of c)for(let f of t){let I=y(f)===y(d)?1:Math.max(W(f,d),V(f,d));I>=.999?(s=Math.max(s,.92),l=l||"head"):I>=.72&&(s=Math.max(s,.78),l=l||"head-fuzzy")}for(let d of a.aliases||[])k(e,d)&&(s=Math.max(s,.92),l=l||"alias");if(a.category&&te[a.category]){let d=n.filter(f=>f.category===a.category).length;for(let f of te[a.category])(k(e,f)||i.includes(f))&&(s=Math.max(s,d===1?.9:.55),l=l||"category")}let p=0;for(let d of m)for(let f of t)W(f,d)>=.85&&p++;return p&&s<.6&&(s=Math.max(s,.45+.1*Math.min(p,2)),l=l||"sides"),{item:a,score:s,reason:l}}).sort((a,s)=>s.score-a.score)}function oe(e,n){let t=Ue(e,n),i=t[0]&&t[0].score>0?t[0]:null,r=t[1]&&t[1].score>0?t[1]:null,o=!!(i&&r&&r.score>=.45&&i.score-r.score<.15);return{best:i,ambiguousWith:o?r:null,ambiguous:o}}var se=new Set(["und","aber","bitte","dann","dazu","sowie","mit","oder","ist","das","ich","nur","auch","danke","gerne"]);function K(e,n,t=2){let i=[];for(let r=n;r<e.length&&i.length<t;r++){let o=e[r];if(se.has(o)||["ohne","statt","anstatt","anstelle","extra","zusaetzlich","mehr"].includes(o))break;if(!(["die","den","der","das","dem"].includes(o)&&i.length===0)&&(i.push(o),i.length===1&&(o.length>5||r===e.length-1)))break}return i}function T(e,n){let t=[...n?.components||[],...n?.ingredients||[],...(n?.allowedModifications||[]).flatMap(i=>i.split(/\s+/))];for(let i of t)if(b(i)===e||y(i)===y(e))return i.replace(/^(ohne|statt|mit)\s+/i,"");return R(e.replace("ae","\xE4").replace("oe","\xF6").replace("ue","\xFC"))}function L(e,n){let t=M(e),i=[],r=o=>{i.some(a=>a.type===o.type&&a.target===o.target)||i.push(o)};for(let o=0;o<t.length;o++){let a=t[o];if(a==="ohne"){let s=K(t,o+1);if(s.length){let l=T(s.join(" "),n);r({type:"without",target:l,textDe:`ohne ${l}`})}}else if(a==="statt"||a==="anstatt"||a==="anstelle"&&t[o+1]==="von"){let s=a==="anstelle"?o+2:o+1,l=K(t,s);if(!l.length)continue;let c=o>0&&!se.has(t[o-1])&&!["mit","lieber"].includes(t[o-1])?t[o-1]:null;if(c&&c.length>2&&!["und","bitte","aber","das","ich"].includes(c)){let p=T(l.join(" "),n),d=T(c,n);r({type:"replace",target:p,replacement:d,textDe:`${d} statt ${p}`})}else{let p=s+l.length;for(;p<t.length&&["bitte","lieber","dann","gerne","gern"].includes(t[p]);)p++;let d=K(t,p);if(d.length){let f=T(l.join(" "),n),I=T(d.join(" "),n);r({type:"replace",target:f,replacement:I,textDe:`${I} statt ${f}`})}}}else if(["extra","zusaetzlich","mehr"].includes(a)){let s=K(t,o+1);if(s.length){let l=T(s.join(" "),n);r({type:"extra",target:l,textDe:`extra ${l}`})}}}if(n&&!i.some(o=>o.type==="replace")){let o=new Set((n.components||[]).map(a=>y(a)));for(let a of ae(n)){if(a.type!=="replace"||!a.replacement)continue;let s=t.some(c=>y(c)===y(a.replacement)),l=t.some(c=>y(c)===y(a.target));s&&!l&&!o.has(y(a.replacement))&&(k(e,"mit "+a.replacement)||k(e,"lieber "+a.replacement))&&r({...a})}}return i.map(o=>({...o,allowed:A(o,n)}))}function ae(e){if(!e)return[];let n=[];for(let t of e.allowedModifications||[]){let i=We(t);i.length?n.push(...i):n.push({type:"note",target:t,textDe:t})}return n}function We(e){let n=M(e),t=[];for(let i=0;i<n.length;i++){let r=n[i];r==="ohne"&&n[i+1]?t.push({type:"without",target:R(n.slice(i+1).join(" ")),textDe:e}):r==="statt"&&i>0&&n[i+1]?t.push({type:"replace",target:R(n.slice(i+1).join(" ")),replacement:R(n.slice(0,i).join(" ")),textDe:e}):["extra","zusaetzlich"].includes(r)&&n[i+1]&&t.push({type:"extra",target:R(n.slice(i+1).join(" ")),textDe:e})}return t}function A(e,n){if(!n)return!1;for(let t of ae(n))if(t.type===e.type&&y(t.target)===y(e.target)&&!(e.type==="replace"&&y(t.replacement||"")!==y(e.replacement||"")))return!0;return!1}var ie=["allergie","allergisch","unvertraeglich","unvertraeglichkeit","vertrage","vertrag","laktose","gluten","zoeliakie","nuesse","nussallergie","darf kein","darf keine","darf nicht","kann kein","kann keine"];function le(e){let n=b(e);return ie.some(r=>n.includes(r))?e.split(/[.!?;]+/).map(r=>r.trim()).filter(Boolean).find(r=>ie.some(o=>b(r).includes(o)))||e.trim():null}var re=["pizza","doener","burger","pommes","currywurst","bratwurst","gulasch","lasagne","spaghetti","nudeln","suppe","salat","braten","huhn","haehnchen","kuchen","eis","steak","wurst","eintopf","kloesse","knoedel","rouladen","fisch","schnitzel","pasta","reis","kartoffeln","gemuese"];function ce(e,n){let t=U(e),i=new Set(n.flatMap(r=>[...H(r).head,...H(r).sides]).map(y));for(let r of t)if(!i.has(y(r))&&(re.includes(r)||re.includes(y(r))))return R(r.replace("ae","\xE4").replace("oe","\xF6").replace("ue","\xFC"));return null}var je=["ja","jawohl","genau","richtig","stimmt","korrekt","passt","in ordnung","okay","ok","jo","jap","sicher","natuerlich","gerne","einverstanden","das stimmt","ja genau","alles richtig"],ue=["nein","nee","noe","falsch","nicht ganz","stimmt nicht","nicht richtig","nicht korrekt","das ist falsch","nicht so"],Be=["mitarbeiter","mitarbeiterin","menschen sprechen","einem menschen","mit jemandem","jemanden sprechen","jemand sprechen","verbinden sie mich","verbinden","restaurant sprechen","kueche sprechen","echte person","echten menschen","persoenlich sprechen","mit einer person","weiterleiten","durchstellen","chef sprechen"],He=["wie gestern","das gleiche","dasselbe","das selbe","wie immer","wie letztes mal","wie beim letzten mal","nochmal das gleiche","wieder das gleiche","das uebliche","wie sonst"],Le=["was gibt es","was gibts","was haben sie","was gibt","speiseplan","auswahl","welche gerichte","was zur auswahl","noch einmal sagen","wiederholen","nochmal sagen","was koennen sie","was steht"],Ge=["abbrechen","doch nicht","keine bestellung","nichts bestellen","auf wiederhoeren","auflegen","gar nichts","heute nichts","nichts heute"];function Ye(e){return{intent:"unclear",items:[],mentionedFood:null,quantity:null,modifications:[],allergyNote:null,specialRequest:null,confidence:0,source:e}}function P(e){let n=b(e);if(!n||ue.some(r=>(" "+n+" ").includes(" "+r+" "))||/\b(aber|ohne|statt|anstatt|lieber|extra|nicht)\b/.test(n))return!1;let t=n.split(" "),i=new Set(["ja","jawohl","genau","richtig","stimmt","korrekt","passt","okay","ok","jo","jap","sicher","natuerlich","gerne","einverstanden","alles","das","ist","so","gut","danke","in","ordnung","super","prima","schoen","bitte","ja"]);return t.some(r=>je.includes(r))&&t.every(r=>i.has(r))}function E(e){let n=" "+b(e)+" ";return ue.some(t=>n.includes(" "+t+" "))}function G(e){return!!N(e,Be)}function de(e){let{utterance:n,menu:t}=e,i=Ye("rules");if(!b(n))return i;if(G(n))return{...i,intent:"handoff",confidence:.95};if(e.stage==="confirm"&&P(n))return{...i,intent:"yes",confidence:.95};if(N(n,Ge)&&!N(n,["ohne"]))return{...i,intent:"cancel",confidence:.85};if(N(n,Le))return{...i,intent:"repeat_menu",confidence:.9};let o=le(n),a=ne(n);if(N(n,He))return{...i,intent:"same_as_yesterday",confidence:.92,allergyNote:o,quantity:a,modifications:L(n,null)};let s=oe(n,t),l=[];s.best&&l.push({menuItemId:s.best.item.id,position:s.best.item.position,confidence:s.best.score}),s.ambiguousWith&&l.push({menuItemId:s.ambiguousWith.item.id,position:s.ambiguousWith.item.position,confidence:s.ambiguousWith.score});let c=s.best&&s.best.score>=.6&&!s.ambiguous?s.best.item:e.draft&&t.find(x=>x.id===e.draft?.menuItemId)||null,m=L(n,c),p=l.length?null:ce(n,t),d="unclear",f=0,I=E(n);return l.length&&l[0].confidence>=.6?(d="order",f=s.ambiguous?Math.min(l[0].confidence,.5):l[0].confidence):m.length&&(e.stage==="change"||e.stage==="confirm"||e.draft)?(d="order",f=.85):o&&e.draft?(d="order",f=.8):I&&e.stage==="confirm"?(d="no",f=.9):p?(d="order",f=.3):l.length&&(d="order",f=l[0].confidence),I&&e.stage==="confirm"&&l.length&&l[0].confidence>=.6&&(d="order",f=l[0].confidence),{intent:d,items:l,mentionedFood:p,quantity:a,modifications:m,allergyNote:o,specialRequest:null,confidence:f,source:"rules"}}var Je=["","eins","zwei","drei","vier","f\xFCnf","sechs","sieben","acht","neun"],me=e=>Je[e]||String(e),u={greeting:e=>`Guten Tag. Willkommen beim ${e}. Bitte nennen Sie jetzt Ihre pers\xF6nliche Kundennummer.`,askCodeAgain:()=>"Entschuldigung. K\xF6nnen Sie Ihre Kundennummer bitte noch einmal langsam nennen?",askCodeDigits:()=>"Sie k\xF6nnen die Nummer auch \xFCber die Tasten Ihres Telefons eingeben.",codeUnknown:()=>"Diese Kundennummer kenne ich leider nicht. Bitte nennen Sie Ihre Kundennummer noch einmal, Ziffer f\xFCr Ziffer.",codeInactive:()=>"Diese Kundennummer ist zurzeit nicht aktiv. Ich verbinde Sie mit dem Restaurant.",codeRecognised:e=>`Danke. Ich habe Sie als Kundennummer ${z(e)} erkannt.`,confirmCode:e=>`Ich habe die Kundennummer ${z(e)} verstanden. Ist das richtig? Bitte sagen Sie Ja oder Nein.`,askOrder:()=>"Was m\xF6chten Sie heute zum Mittagessen bestellen?",askOrderShort:()=>"Was m\xF6chten Sie bestellen?",menuToday:e=>{let n=e.filter(i=>i.available);return n.length?`Heute haben wir: ${n.map(i=>`Nummer ${me(i.position)}: ${i.nameDe}`).join(". ")}.`:"F\xFCr heute ist leider kein Gericht verf\xFCgbar."},choices:e=>{let n=e.filter(t=>t.available).map(t=>t.nameDe);return n.length<=1?n.join(""):`${n.slice(0,-1).join(", ")} oder ${n[n.length-1]}`},askOrderAgain:()=>"Entschuldigung, ich habe Sie nicht ganz verstanden. K\xF6nnen Sie das bitte noch einmal sagen?",ambiguousDish:e=>`Entschuldigung, ich habe das Gericht nicht ganz verstanden. M\xF6chten Sie ${u.choices(e)}?`,notOnMenu:(e,n)=>`${e} haben wir heute leider nicht. Heute k\xF6nnen Sie zwischen ${u.choices(n)} w\xE4hlen. Was m\xF6chten Sie?`,unavailable:(e,n)=>`${e} ist heute leider nicht verf\xFCgbar. Heute k\xF6nnen Sie zwischen ${u.choices(n)} w\xE4hlen. Was m\xF6chten Sie?`,yesterdayUnavailable:e=>`Das Essen von gestern ist heute leider nicht verf\xFCgbar. ${u.menuToday(e)} Was m\xF6chten Sie?`,noPreviousOrder:e=>`Ich habe leider keine fr\xFChere Bestellung von Ihnen gefunden. ${u.menuToday(e)} Was m\xF6chten Sie?`,quantityTooHigh:()=>"So viele Portionen kann ich am Telefon leider nicht aufnehmen. Bitte nennen Sie eine Anzahl bis f\xFCnf, oder ich verbinde Sie mit dem Restaurant.",confirmOrder:(e,n)=>{let t=[];t.push(`Ich wiederhole Ihre Bestellung f\xFCr Kundennummer ${z(n)}:`);let i=e.quantity>1?`${me(e.quantity)} Mal `:"";return t.push(`${i}${e.itemName}${e.modifications.length?", "+e.modifications.map(r=>r.textDe).join(", "):""}.`),e.allergyNote&&t.push("Ihren Hinweis zu Unvertr\xE4glichkeiten habe ich notiert. Das Restaurant pr\xFCft ihn pers\xF6nlich."),e.specialRequest&&t.push(`Sonderwunsch: ${e.specialRequest}.`),t.push("Ist das richtig? Bitte sagen Sie Ja oder Nein."),t.join(" ")},confirmAgain:()=>"Ist die Bestellung so richtig? Bitte sagen Sie Ja oder Nein.",askChange:()=>"Kein Problem. Was m\xF6chten Sie \xE4ndern?",changeNotUnderstood:e=>`Entschuldigung, das habe ich nicht verstanden. Sie k\xF6nnen ein anderes Gericht nennen, zum Beispiel ${u.choices(e)}, oder eine \xC4nderung, zum Beispiel ohne Zwiebeln.`,saved:()=>"Danke. Ihre Bestellung wurde erfolgreich aufgenommen. Guten Appetit und auf Wiederh\xF6ren.",savedWithReview:()=>"Danke. Ihre Bestellung wurde aufgenommen. Das Restaurant pr\xFCft Ihren Hinweis und meldet sich bei Bedarf. Auf Wiederh\xF6ren.",afterDeadlineNote:e=>`Ein Hinweis: Der Bestellschluss f\xFCr heute war um ${e.replace(":"," Uhr ")}. Das Restaurant pr\xFCft, ob Ihre Bestellung heute noch m\xF6glich ist.`,afterDeadlineRefuse:e=>`Der Bestellschluss f\xFCr heute war leider um ${e.replace(":"," Uhr ")}. Ich verbinde Sie mit dem Restaurant.`,waiting:e=>`Ich warte gerne. ${e}`,waitingHintCode:()=>"Sagen Sie einfach Ihre Kundennummer, wenn Sie bereit sind.",waitingHintOrder:()=>"Sagen Sie einfach Ihre Bestellung, wenn Sie bereit sind.",waitingHintConfirm:()=>"Sagen Sie einfach Ja oder Nein, wenn Sie bereit sind.",handoff:()=>"Kein Problem. Ich verbinde Sie jetzt mit dem Restaurant.",handoffUnavailable:()=>"Leider ist im Restaurant gerade niemand erreichbar. Ich habe Ihren Anruf notiert. Das Restaurant meldet sich bei Ihnen. Auf Wiederh\xF6ren.",noMenuToday:()=>"F\xFCr heute liegt leider noch kein Speiseplan vor.",goodbye:()=>"Vielen Dank f\xFCr Ihren Anruf. Auf Wiederh\xF6ren.",goodbyeNoOrder:()=>"In Ordnung, dann nehme ich keine Bestellung auf. Auf Wiederh\xF6ren.",systemError:()=>"Entschuldigung, es gibt gerade ein technisches Problem. Ich verbinde Sie mit dem Restaurant.",yesOrNo:()=>"Bitte sagen Sie Ja oder Nein.",modificationNote:e=>e.allowed?"":`Die \xC4nderung \u201E${e.textDe}\u201C pr\xFCft die K\xFCche.`};var Ze="Europe/Berlin";function fe(e=new Date){return new Intl.DateTimeFormat("de-DE",{timeZone:Ze,hour:"2-digit",minute:"2-digit",hour12:!1}).format(e)}function he(e,n){if(!n||!/^\d{1,2}:\d{2}$/.test(n))return!1;let[t,i]=e.split(":").map(Number),[r,o]=n.split(":").map(Number);return t*60+i>r*60+o}var Qe=5;function ye(e,n=null){return{stage:"ASK_CODE",turns:0,failures:0,silences:0,unknownCodeAttempts:0,customer:null,pendingCode:null,callerNumber:n,callerMatchedCustomerId:null,draft:null,orderDate:e,afterDeadline:!1,transcript:[],customerConfidence:0,orderConfidence:0,menuMatchConfidence:0}}function we(e){return(e.now||new Date).toISOString()}function Ve(e,n,t){for(let i of n)i&&e.transcript.push({role:"assistant",text:i,at:we(t)})}function Xe(e,n){let t=n.utterance||(n.digits?`[Tasten: ${n.digits}]`:"");t&&e.transcript.push({role:"customer",text:t,confidence:n.sttConfidence,at:we(n)})}function g(e,n,t,i,r,o){return Ve(e,n,o),{state:e,say:n.filter(Boolean),action:t,gatherMode:i,effects:r}}function w(e,n,t,i,r=[],o=[]){e.stage="HANDOFF";let a=[...r,{type:"alert",alertType:"human_handoff",severity:"critical",message:n,customerCode:e.customer?.customerCode||e.pendingCode||void 0,customerId:e.customer?.id},{type:"handoff",reason:n},{type:"call_completed",outcome:"handoff"}];return i.settings.handoffAvailable?g(e,[...o,u.handoff()],"dial","speech",a,t):g(e,[...o,u.handoffUnavailable()],"hangup","speech",a,t)}function Ie(e){return e.menu.filter(n=>n.available)}function ge(e,n,t){let i=(n.modifications||[]).map(o=>({...o,allowed:o.allowed??A(o,e)})),r={menuItemId:e.id,itemPosition:e.position,itemName:e.nameDe,components:e.components||[],quantity:n.quantity??t?.quantity??1,modifications:i,specialRequest:n.specialRequest??t?.specialRequest??null,allergyNote:n.allergyNote??t?.allergyNote??null,needsReview:!1,reviewReason:null,menuMatchConfidence:n.items?.[0]?.confidence??1};return Y(r)}function Y(e,n=!1){let t=[],i=e.modifications.filter(r=>!r.allowed);return i.length&&t.push("\xC4nderung nicht in der Liste der erlaubten \xC4nderungen: "+i.map(r=>r.textDe).join(", ")),e.allergyNote&&t.push("Allergie-/Unvertr\xE4glichkeitshinweis: "+e.allergyNote),e.specialRequest&&t.push("Sonderwunsch: "+e.specialRequest),n&&t.push("Bestellung nach Bestellschluss"),{...e,needsReview:t.length>0,reviewReason:t.length?t.join(" | "):null}}function pe(e,n){let t=[...e];for(let i of n){let r=t.findIndex(o=>o.type===i.type&&o.target.toLowerCase()===i.target.toLowerCase());r>=0?t[r]=i:t.push(i)}return t}function en(e,n){let t=e.menuItemId?n.find(r=>r.id===e.menuItemId):null;if(t)return t;let i=e.itemName.toLowerCase();return n.find(r=>r.nameDe.toLowerCase()===i)||null}async function Ce(e,n,t){let i=JSON.parse(JSON.stringify(e)),r=t.log||(()=>{}),o=[];if(i.turns+=1,n.callerNumber&&!i.callerNumber&&(i.callerNumber=n.callerNumber),n.utterance===null&&!n.digits&&i.turns===1){let l=fe(n.now||new Date);if(i.afterDeadline=he(l,t.settings.orderDeadline),!t.menu.length||!Ie(t).length)return w(i,"Kein ver\xF6ffentlichter Speiseplan f\xFCr heute",n,t,[],[u.greeting(t.settings.restaurantName),u.noMenuToday()]);if(i.afterDeadline&&!t.settings.allowSameDayAfterDeadline)return w(i,"Anruf nach Bestellschluss ("+t.settings.orderDeadline+")",n,t,[],[u.greeting(t.settings.restaurantName),u.afterDeadlineRefuse(t.settings.orderDeadline||"")]);if(t.settings.useCallerId&&i.callerNumber){let c=await t.findCustomerByPhone(i.callerNumber).catch(()=>null);i.callerMatchedCustomerId=c?.id||null}return r("call.start",{afterDeadline:i.afterDeadline,callerKnown:!!i.callerMatchedCustomerId}),g(i,[u.greeting(t.settings.restaurantName)],"gather","code",o,n)}Xe(i,n);let a=(n.utterance||"").trim(),s=(n.digits||"").replace(/\D/g,"");if(!a&&!s){if(i.silences+=1,r("turn.silence",{stage:i.stage,silences:i.silences}),i.silences>=3)return i.stage==="ASK_CODE"?(o.push({type:"call_completed",outcome:"abandoned"}),i.stage="ENDED",g(i,[u.goodbye()],"hangup","speech",o,n)):w(i,"L\xE4ngeres Schweigen w\xE4hrend der Bestellung",n,t);let l=i.stage==="ASK_CODE"||i.stage==="CONFIRM_CODE"?u.waitingHintCode():i.stage==="CONFIRM_ORDER"?u.waitingHintConfirm():u.waitingHintOrder(),c=i.stage==="ASK_CODE"?"code":i.stage==="CONFIRM_ORDER"||i.stage==="CONFIRM_CODE"?"confirm":"speech";return g(i,[u.waiting(l)],"gather",c,o,n)}if(i.silences=0,a&&G(a))return w(i,"Kunde m\xF6chte mit einem Mitarbeiter sprechen",n,t);switch(i.stage){case"ASK_CODE":return De(i,n,t,a,s,o);case"CONFIRM_CODE":return nn(i,n,t,a,s,o);case"ASK_ORDER":return Z(i,n,t,a,o,"order");case"ASK_CHANGE":return Z(i,n,t,a,o,"change");case"CONFIRM_ORDER":return Se(i,n,t,a,s,o);default:return i.stage="ENDED",g(i,[u.goodbye()],"hangup","speech",o,n)}}async function J(e,n,t,i,r,o){let a=await r.findCustomerByCode(n);if(!a)return e.unknownCodeAttempts+=1,e.failures+=1,r.log?.("code.unknown",{attempts:e.unknownCodeAttempts}),e.unknownCodeAttempts>=2?w(e,`Unbekannte Kundennummer ${n}`,i,r,[{type:"alert",alertType:"unknown_customer",severity:"warning",message:`Anrufer nannte die unbekannte Kundennummer ${n}.`,customerCode:n}]):g(e,[u.codeUnknown()],"gather","code",o,i);if(!a.active)return w(e,`Kundennummer ${n} ist deaktiviert`,i,r,[{type:"alert",alertType:"unknown_customer",severity:"warning",message:`Anruf mit deaktivierter Kundennummer ${n}.`,customerCode:n,customerId:a.id}]);if(e.callerMatchedCustomerId&&e.callerMatchedCustomerId!==a.id&&e.pendingCode!==n)return e.pendingCode=n,e.stage="CONFIRM_CODE",o.push({type:"alert",alertType:"caller_mismatch",severity:"info",message:`Anrufernummer geh\xF6rt zu einem anderen Kunden als die genannte Kundennummer ${n}.`,customerCode:n,customerId:a.id}),g(e,[u.confirmCode(n)],"gather","confirm",o,i);e.customer=a,e.customerConfidence=t,e.pendingCode=null,e.stage="ASK_ORDER",e.failures=0,r.log?.("code.accepted",{customerId:a.id,confidence:t});let s=[u.codeRecognised(n)];return e.afterDeadline&&r.settings.orderDeadline&&s.push(u.afterDeadlineNote(r.settings.orderDeadline)),s.push(u.askOrder()),g(e,s,"gather","speech",o,i)}async function De(e,n,t,i,r,o){if(r)return J(e,r,1,n,t,o);let a=B(i),s=typeof n.sttConfidence=="number"?n.sttConfidence:.8;if(a.length===1){let c=a[0],m=c.confidence*(.6+.4*s);if(m>=t.settings.confidenceThreshold)return J(e,c.code,m,n,t,o);if(m>=.4)return e.pendingCode=c.code,e.customerConfidence=m,e.stage="CONFIRM_CODE",g(e,[u.confirmCode(c.code)],"gather","confirm",o,n)}if(e.failures+=1,t.log?.("code.unclear",{candidates:a.length,failures:e.failures}),e.failures>=t.settings.maxFailures)return w(e,"Kundennummer wiederholt nicht verstanden",n,t,[{type:"alert",alertType:"repeated_failures",severity:"warning",message:"Die Kundennummer wurde mehrfach nicht verstanden."}]);let l=[u.askCodeAgain()];return e.failures>=2&&l.push(u.askCodeDigits()),g(e,l,"gather","code",o,n)}async function nn(e,n,t,i,r,o){let a=r==="1"||P(i),s=r==="2"||E(i);if(a&&e.pendingCode){let c=e.pendingCode;return e.callerMatchedCustomerId=null,J(e,c,Math.max(e.customerConfidence,t.settings.confidenceThreshold),n,t,o)}return s?(e.pendingCode=null,e.stage="ASK_CODE",g(e,[u.askCodeAgain()],"gather","code",o,n)):B(i).length===1?(e.stage="ASK_CODE",De(e,n,t,i,r,o)):(e.failures+=1,e.failures>=t.settings.maxFailures?w(e,"Best\xE4tigung der Kundennummer wiederholt nicht verstanden",n,t):g(e,[u.confirmCode(e.pendingCode||"")],"gather","confirm",o,n))}async function Z(e,n,t,i,r,o){let a=Ie(t),s=e.customer,l=e.draft||null;if(o==="order"&&!l&&E(i)&&i.split(" ").length<=3)return e.customer=null,e.stage="ASK_CODE",g(e,[u.askCodeAgain()],"gather","code",r,n);let c=await t.understand({utterance:i,sttConfidence:n.sttConfidence,stage:o,menu:t.menu,draft:l,hasPreviousOrder:!0});t.log?.("order.understood",{stage:o,intent:c.intent,candidates:c.items.length,confidence:c.confidence,source:c.source});let m=(h,S)=>(e.failures+=1,e.failures>=t.settings.maxFailures?w(e,"Bestellung wiederholt nicht verstanden",n,t,[{type:"alert",alertType:"repeated_failures",severity:"warning",message:S||"Die Bestellung wurde mehrfach nicht verstanden.",customerCode:s.customerCode,customerId:s.id}]):g(e,h,"gather","speech",r,n));switch(c.intent){case"handoff":return w(e,"Kunde m\xF6chte mit einem Mitarbeiter sprechen",n,t);case"cancel":return e.stage="ENDED",r.push({type:"call_completed",outcome:"no_order"}),g(e,[u.goodbyeNoOrder()],"hangup","speech",r,n);case"repeat_menu":return g(e,[u.menuToday(a),u.askOrderShort()],"gather","speech",r,n);case"same_as_yesterday":{let h=await t.previousOrder(s.id);if(!h)return m([u.noPreviousOrder(a)]);let S=en(h,a);if(!S)return r.push({type:"alert",alertType:"unavailable_item",severity:"info",message:`Kunde ${s.customerCode} wollte "${h.itemName}" wie gestern; heute nicht im Speiseplan.`,customerCode:s.customerCode,customerId:s.id}),g(e,[u.yesterdayUnavailable(a)],"gather","speech",r,n);let v=ge(S,{...c,modifications:pe(h.modifications||[],c.modifications),quantity:c.quantity??h.quantity},null);return be(e,Y(v,e.afterDeadline),.9,n,r)}case"yes":case"no":case"unclear":return o==="change"?m([u.changeNotUnderstood(a)]):c.mentionedFood?p(c.mentionedFood):m([u.askOrderAgain()]);case"order":break}function p(h){return r.push({type:"alert",alertType:"unavailable_item",severity:"info",message:`Kunde ${s.customerCode} fragte nach "${h}", das heute nicht angeboten wird.`,customerCode:s.customerCode,customerId:s.id}),m([u.notOnMenu(h,a)])}let d=c.items[0],f=c.items[1],I=t.settings.confidenceThreshold;if(d){let h=t.menu.find(S=>S.id===d.menuItemId);if(h&&!h.available&&d.confidence>=I)return r.push({type:"alert",alertType:"unavailable_item",severity:"info",message:`Kunde ${s.customerCode} wollte "${h.nameDe}", heute nicht verf\xFCgbar.`,customerCode:s.customerCode,customerId:s.id}),g(e,[u.unavailable(h.nameDe,a)],"gather","speech",r,n)}let x=!!(d&&f&&f.confidence>=.45&&d.confidence-f.confidence<.15),D=null;if(d&&d.confidence>=I&&!x&&(D=a.find(h=>h.id===d.menuItemId)||null),!D&&l&&(c.modifications.length||c.allergyNote||c.quantity||c.specialRequest)&&!(d&&d.confidence>=.45)&&(D=a.find(h=>h.id===l.menuItemId)||null),!D){if(x||d&&d.confidence>=.4){let h=c.items.filter(v=>v.confidence>=.4).map(v=>a.find(Re=>Re.id===v.menuItemId)).filter(v=>!!v),S=h.length>=2?h:a;return e.failures+1>=t.settings.maxFailures&&r.push({type:"alert",alertType:"ambiguous_order",severity:"warning",message:`Bestellung von Kunde ${s.customerCode} blieb mehrdeutig.`,customerCode:s.customerCode,customerId:s.id}),m([u.ambiguousDish(S)])}return c.mentionedFood?p(c.mentionedFood):m([o==="change"?u.changeNotUnderstood(a):u.askOrderAgain()])}let Q=c.quantity??l?.quantity??1;if(Q>Qe)return m([u.quantityTooHigh()]);let Me=l&&l.menuItemId===D.id?l.modifications:[],ve=pe(Me,c.modifications.map(h=>({...h,allowed:A(h,D)}))),q=l&&l.menuItemId===D.id?l:null,ke=ge(D,{...c,modifications:ve,quantity:Q,allergyNote:c.allergyNote??q?.allergyNote??null,specialRequest:c.specialRequest??q?.specialRequest??null},q);return c.allergyNote&&!(l&&l.allergyNote===c.allergyNote)&&r.push({type:"alert",alertType:"allergy_request",severity:"critical",message:`Kunde ${s.customerCode}: "${c.allergyNote}" \u2014 bitte pers\xF6nlich pr\xFCfen.`,customerCode:s.customerCode,customerId:s.id}),e.failures=0,be(e,Y(ke,e.afterDeadline),d?d.confidence:.85,n,r)}function be(e,n,t,i,r){return e.draft=n,e.menuMatchConfidence=n.menuMatchConfidence,e.orderConfidence=t,e.stage="CONFIRM_ORDER",g(e,[u.confirmOrder(n,e.customer.customerCode)],"gather","confirm",r,i)}async function Se(e,n,t,i,r,o){let a=e.draft,s=e.customer;if(r==="1"||P(i))return e.stage="DONE",o.push({type:"save_order",draft:a,customer:s,orderDate:e.orderDate}),o.push({type:"call_completed",outcome:"ordered"}),t.log?.("order.confirmed",{customerId:s.id,needsReview:a.needsReview}),g(e,[a.needsReview?u.savedWithReview():u.saved()],"hangup","speech",o,n);if(r==="2"||E(i)&&i.split(" ").length<=3)return e.stage="ASK_CHANGE",g(e,[u.askChange()],"gather","speech",o,n);if(i){let m=await t.understand({utterance:i,sttConfidence:n.sttConfidence,stage:"confirm",menu:t.menu,draft:a,hasPreviousOrder:!0});if(m.intent==="yes")return Se(e,n,t,"ja","",o);if(m.intent==="handoff")return w(e,"Kunde m\xF6chte mit einem Mitarbeiter sprechen",n,t);if(m.intent==="cancel")return e.stage="ENDED",o.push({type:"call_completed",outcome:"no_order"}),g(e,[u.goodbyeNoOrder()],"hangup","speech",o,n);if(m.intent==="order"||m.intent==="same_as_yesterday"||m.modifications.length)return e.stage="ASK_CHANGE",Z(e,n,t,i,o,"change")}return e.failures+=1,e.failures>=t.settings.maxFailures?w(e,"Best\xE4tigung wiederholt nicht verstanden",n,t):g(e,[u.confirmAgain()],"gather","confirm",o,n)}return xe(tn);})();
+</script>
+<script>
+(function () {
+  const TODAY = new Date().toISOString().slice(0, 10);
+  const YESTERDAY = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const MENU = [
+    { id: 'm1', date: TODAY, position: 1, nameDe: 'Schnitzel mit Kartoffeln und Gemüse', category: 'main', available: true, components: ['Kartoffeln', 'Gemüse'], allergens: ['Gluten'], ingredients: ['Schweinefleisch', 'Zwiebeln'], allowedModifications: ['ohne Zwiebeln', 'Reis statt Kartoffeln'], aliases: [] },
+    { id: 'm2', date: TODAY, position: 2, nameDe: 'Fisch mit Reis und Salat', category: 'main', available: true, components: ['Reis', 'Salat'], allergens: ['Fisch'], ingredients: [], allowedModifications: ['ohne Salat'], aliases: [] },
+    { id: 'm3', date: TODAY, position: 3, nameDe: 'Vegetarische Pasta', category: 'vegetarian', available: true, components: ['Pasta', 'Tomatensoße'], allergens: ['Gluten'], ingredients: [], allowedModifications: ['ohne Käse'], aliases: ['Nudeln'] },
+    { id: 'm4', date: TODAY, position: 4, nameDe: 'Gulasch mit Knödeln', category: 'main', available: false, components: ['Knödel'], allergens: [], ingredients: [], allowedModifications: [], aliases: [] },
+  ];
+  const CUSTOMERS = [
+    { id: 'c427', customerCode: '427', firstName: 'Erika', lastName: 'Müller', salutation: 'Frau', roomNumber: '12', active: true, phoneNumber: '+491700000427' },
+    { id: 'c315', customerCode: '315', firstName: 'Karl', lastName: 'Schmidt', salutation: 'Herr', roomNumber: '7', active: true },
+    { id: 'c108', customerCode: '108', firstName: 'Hildegard', lastName: 'Weber', salutation: 'Frau', roomNumber: '3', active: true },
+  ];
+  const PREVIOUS = { c427: { orderDate: YESTERDAY, itemName: 'Fisch mit Reis und Salat', menuItemId: 'old', modifications: [{ type: 'without', target: 'Salat', textDe: 'ohne Salat', allowed: true }], quantity: 1 } };
+  const SETTINGS = { restaurantName: 'Mittagessen-Service', confidenceThreshold: 0.7, maxFailures: 3, useCallerId: true, orderDeadline: null, allowSameDayAfterDeadline: true, handoffAvailable: true };
+  const ctx = {
+    settings: SETTINGS, menu: MENU, today: TODAY,
+    findCustomerByCode: async (code) => CUSTOMERS.find((c) => c.customerCode === code) || null,
+    findCustomerByPhone: async (phone) => CUSTOMERS.find((c) => c.phoneNumber === phone) || null,
+    previousOrder: async (id) => PREVIOUS[id] || null,
+    understand: async (i) => Lunch.understandWithRules(i),
+  };
+  const STATUS = { NEW: 'Neu', CONFIRMED: 'Bestätigt', PREPARING: 'In Zubereitung', READY: 'Fertig', DELIVERED: 'Geliefert', CANCELLED: 'Storniert' };
+  const NEXT = { NEW: ['CONFIRMED', 'CANCELLED'], CONFIRMED: ['PREPARING', 'CANCELLED'], PREPARING: ['READY'], READY: ['DELIVERED'], DELIVERED: [], CANCELLED: ['NEW'] };
+  const ALERT = { unknown_customer: 'Unbekannter Kunde', ambiguous_order: 'Unklare Bestellung', allergy_request: 'Allergie-Hinweis', unavailable_item: 'Gericht nicht verfügbar', repeated_failures: 'Mehrfach nicht verstanden', human_handoff: 'Weiterleitung', caller_mismatch: 'Anrufernummer passt nicht', system_error: 'Fehler' };
+  const STAGE = { ASK_CODE: 'Kundennummer', CONFIRM_CODE: 'Nummer bestätigen', ASK_ORDER: 'Bestellung', CONFIRM_ORDER: 'Bestätigung', ASK_CHANGE: 'Änderung', DONE: 'Aufgenommen', HANDOFF: 'Weitergeleitet', ENDED: 'Beendet' };
+  const CHIPS = {
+    ASK_CODE: ['vier zwei sieben', '315', 'Nummer 108', 'Zimmer 12', '999'],
+    CONFIRM_CODE: ['Ja', 'Nein'],
+    ASK_ORDER: ['Ich nehme Nummer eins', 'Schnitzel ohne Zwiebeln', 'Fisch mit Reis, ohne Salat', 'Das vegetarische Essen', 'Das gleiche wie gestern', 'Ich möchte Reis', 'Ich möchte Pizza', 'Gulasch bitte', 'Zwei mal Schnitzel, ich darf keine Nüsse essen', 'Was gibt es heute?', 'Mitarbeiter bitte'],
+    ASK_CHANGE: ['Ohne Zwiebeln', 'Reis statt Kartoffeln', 'Nummer zwei', 'Doch nichts'],
+    CONFIRM_ORDER: ['Ja', 'Ja, genau', 'Nein', 'Nein, ich meinte das zweite Essen', 'Ja, aber ohne Zwiebeln'],
+  };
+
+  const $ = (id) => document.getElementById(id);
+  let state = null, orders = [], alerts = [], busy = false, seq = 0;
+
+  // ── Voice: the phone's own speech recognition and voice, German ──────────
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const synth = window.speechSynthesis;
+  let ttsOn = !!synth, listening = false, recognizer = null, autoListen = false;
+  function germanVoice() {
+    if (!synth) return null;
+    const voices = synth.getVoices();
+    return voices.find((v) => /^de[-_]DE/i.test(v.lang) && /Anna|Vicki|Petra|Google Deutsch|Helena|Katja/i.test(v.name)) || voices.find((v) => /^de/i.test(v.lang)) || null;
+  }
+  function speak(texts) {
+    return new Promise((resolve) => {
+      if (!ttsOn || !synth || !texts.length) return resolve();
+      synth.cancel();
+      const voice = germanVoice();
+      let remaining = texts.length;
+      for (const t of texts) {
+        const u = new SpeechSynthesisUtterance(t);
+        u.lang = 'de-DE'; u.rate = 0.9; u.pitch = 1; if (voice) u.voice = voice;
+        u.onend = () => { if (--remaining === 0) resolve(); };
+        u.onerror = () => { if (--remaining === 0) resolve(); };
+        synth.speak(u);
+      }
+      setTimeout(resolve, 20000 + texts.join(' ').length * 60); // safety net
+    });
+  }
+  function setListening(on) {
+    listening = on;
+    $('mic').dataset.listening = on ? 'true' : 'false';
+    $('mic-label').textContent = on ? 'Ich höre …' : 'Sprechen';
+  }
+  function listen() {
+    if (!SR || !state || busy || listening) return;
+    if (synth) synth.cancel();
+    try {
+      recognizer = new SR();
+      recognizer.lang = 'de-DE'; recognizer.interimResults = false; recognizer.maxAlternatives = 1; recognizer.continuous = false;
+      recognizer.onresult = (e) => {
+        const r = e.results[0] && e.results[0][0];
+        setListening(false);
+        if (r && r.transcript) turn({ utterance: r.transcript.trim(), sttConfidence: typeof r.confidence === 'number' && r.confidence > 0 ? r.confidence : 0.85, now: new Date() });
+      };
+      recognizer.onerror = (e) => {
+        setListening(false); autoListen = false;
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { $('voice-hint').textContent = 'Mikrofon nicht erlaubt. Seite in einem neuen Tab öffnen (oben) und dem Browser das Mikrofon erlauben; auf dem iPhone muss unter Einstellungen → Siri „Diktat“ eingeschaltet sein.'; $('framed').style.display = 'block'; $('open-tab').href = location.href; $('own-url').textContent = location.href; }
+        else if (e.error === 'no-speech') $('voice-hint').textContent = 'Nichts gehört. Noch einmal antippen und sprechen.';
+      };
+      recognizer.onend = () => setListening(false);
+      recognizer.start();
+      setListening(true);
+      $('voice-hint').textContent = 'Jetzt sprechen … (z. B. „vier zwei sieben“)';
+    } catch (err) {
+      setListening(false); autoListen = false;
+      $('voice-hint').textContent = 'Spracherkennung konnte nicht starten. Bitte antippen und noch einmal versuchen.';
+    }
+  }
+  // Inside an embedding frame the browser refuses the microphone: offer the page's own address.
+  try {
+    if (window.top !== window.self) {
+      $('framed').style.display = 'block';
+      $('open-tab').href = location.href;
+      $('own-url').textContent = location.href;
+    }
+  } catch { $('framed').style.display = 'block'; $('open-tab').href = location.href; $('own-url').textContent = location.href; }
+  if (!SR) {
+    $('mic').disabled = true; $('mic-label').textContent = 'Kein Mikrofon-Support';
+    $('voice-hint').textContent = 'Dieser Browser hat keine Spracherkennung. Bitte Safari (iPhone) oder Chrome (Android) nutzen — oder tippen.';
+  }
+  $('mic').addEventListener('click', () => { autoListen = true; if (listening) { try { recognizer && recognizer.stop(); } catch {} } else listen(); });
+  $('tts').addEventListener('click', () => { ttsOn = !ttsOn; $('tts').setAttribute('aria-pressed', String(ttsOn)); $('tts').textContent = ttsOn ? 'Ton an' : 'Ton aus'; if (!ttsOn && synth) synth.cancel(); });
+  if (synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => {};
+
+  function line(role, text) {
+    const el = document.createElement('div');
+    el.className = 'msg ' + role; el.textContent = text;
+    $('log').appendChild(el); $('log').scrollTop = $('log').scrollHeight;
+  }
+  function toast(text) {
+    const t = document.createElement('div'); t.className = 'toast'; t.textContent = text; document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+  function chips(stage) {
+    $('chips').innerHTML = '';
+    for (const c of CHIPS[stage] || []) {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = c; b.onclick = () => say(c);
+      $('chips').appendChild(b);
+    }
+  }
+  function setStage(stage, extra) {
+    $('stage').textContent = (STAGE[stage] || stage) + (extra ? ' · ' + extra : '');
+  }
+
+  async function turn(input) {
+    if (!state || busy) return;
+    busy = true;
+    if (input.utterance !== null) line('me', input.utterance || '(Schweigen)');
+    try {
+      const r = await Lunch.runTurn(state, input, ctx);
+      state = r.state;
+      for (const s of r.say) line('ai', s);
+      for (const e of r.effects) effect(e);
+      const conf = state.stage === 'CONFIRM_ORDER' ? Math.round(state.orderConfidence * 100) + ' % sicher' : state.customer ? 'Kunde ' + state.customer.customerCode : '';
+      setStage(state.stage, conf);
+      const open = r.action === 'gather';
+      if (r.action === 'dial') { line('sys', 'Verbindung zum Restaurant wird aufgebaut …'); endCall(); }
+      else if (r.action === 'hangup') { line('sys', 'Aufgelegt.'); endCall(); }
+      else chips(state.stage);
+      busy = false;
+      await speak(r.say);
+      if (open && autoListen && SR && state) listen();
+    } finally { busy = false; }
+  }
+  function effect(e) {
+    if (e.type === 'save_order') {
+      const c = e.customer, d = e.draft;
+      orders.unshift({ id: ++seq, code: c.customerCode, name: [c.salutation, c.firstName, c.lastName].filter(Boolean).join(' '), room: c.roomNumber, dish: d.itemName, sides: d.components, mods: d.modifications.map((m) => m.textDe), qty: d.quantity, allergy: d.allergyNote, review: d.needsReview, reason: d.reviewReason, status: 'NEW', at: new Date() });
+      toast('Neue Bestellung — #' + c.customerCode + ' ' + d.itemName);
+      $('rest-dot').style.display = 'block';
+      render();
+    } else if (e.type === 'alert') {
+      alerts.unshift({ type: e.alertType, severity: e.severity, message: e.message, at: new Date() });
+      $('rest-dot').style.display = 'block';
+      render();
+    }
+  }
+  function endCall() { state = null; autoListen = false; if (synth) setTimeout(() => {}, 0); $('chips').innerHTML = ''; $('utterance').disabled = true; $('send').disabled = true; $('silence').disabled = true; }
+  async function startCall() {
+    $('log').innerHTML = ''; $('utterance').disabled = false; $('send').disabled = false; $('silence').disabled = false;
+    state = Lunch.initialState(TODAY, null);
+    line('sys', 'Es klingelt … ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }));
+    await turn({ utterance: null, callerNumber: null, now: new Date() });
+    $('utterance').focus();
+  }
+  function say(text) { $('utterance').value = ''; turn({ utterance: text, sttConfidence: 0.9, now: new Date() }); }
+
+  function fmtTime(d) { return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); }
+  function card(o, kitchen) {
+    const el = document.createElement('article');
+    el.className = 'card' + (o.review ? ' review' : '') + (o.status === 'READY' ? ' ready' : '');
+    const next = NEXT[o.status] || [];
+    el.innerHTML =
+      '<div class="who"><span class="code">#' + o.code + '</span><span class="pill ' + o.status + '">' + STATUS[o.status] + '</span></div>' +
+      (kitchen ? '' : '<div class="name">' + o.name + ' · Zimmer ' + o.room + ' · Telefon ' + fmtTime(o.at) + '</div>') +
+      '<div class="dish">' + (o.qty > 1 ? o.qty + ' × ' : '') + o.dish + '</div>' +
+      (o.sides.length ? '<div class="sides">' + o.sides.join(' · ') + '</div>' : '') +
+      (o.mods.length ? '<div class="mods">' + o.mods.join(' · ') + '</div>' : '') +
+      (o.allergy ? '<div class="note">Hinweis: ' + o.allergy + '</div>' : '') +
+      (o.review && !kitchen ? '<div class="note">Bitte prüfen: ' + o.reason + '</div>' : '') +
+      (kitchen ? '<div class="room">Zimmer: ' + o.room + '</div>' : '') +
+      '<div class="actions"></div>';
+    const actions = el.querySelector('.actions');
+    for (const s of (kitchen ? next.filter((x) => x !== 'CANCELLED').slice(0, 1) : next)) {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = STATUS[s]; if (s === 'CANCELLED') b.className = 'cancel';
+      b.onclick = () => { o.status = s; render(); };
+      actions.appendChild(b);
+    }
+    return el;
+  }
+  function render() {
+    const counts = {}; for (const o of orders) counts[o.status] = (counts[o.status] || 0) + 1;
+    $('counts').innerHTML = Object.keys(STATUS).filter((s) => counts[s]).map((s) => '<span class="pill ' + s + '">' + counts[s] + ' ' + STATUS[s] + '</span>').join('');
+    $('orders').innerHTML = ''; $('kitchen').innerHTML = '';
+    if (!orders.length) $('orders').innerHTML = '<div class="empty">Noch keine Bestellung. Rufen Sie an.</div>';
+    for (const o of orders) $('orders').appendChild(card(o, false));
+    const k = orders.filter((o) => ['NEW', 'CONFIRMED', 'PREPARING', 'READY'].includes(o.status));
+    if (!k.length) $('kitchen').innerHTML = '<div class="empty">Nichts in Arbeit.</div>';
+    for (const o of k) $('kitchen').appendChild(card(o, true));
+    $('alerts').innerHTML = alerts.length ? '' : '<div class="empty">Keine Meldungen.</div>';
+    for (const a of alerts) { const el = document.createElement('div'); el.className = 'alert ' + a.severity; el.innerHTML = '<span class="kind">' + ALERT[a.type] + ' · ' + fmtTime(a.at) + '</span><span></span>'; el.lastChild.textContent = a.message; $('alerts').appendChild(el); }
+  }
+  function renderStatic() {
+    $('menu').innerHTML = MENU.map((m) => '<div class="item"><span class="pos">' + m.position + '</span><div><div class="nm">' + m.nameDe + (m.available ? '' : ' — heute nicht verfügbar') + '</div><div class="det">' + [m.components.length ? m.components.join(', ') : '', m.allowedModifications.length ? 'Änderungen: ' + m.allowedModifications.join(', ') : ''].filter(Boolean).join(' · ') + '</div></div></div>').join('');
+    $('customers').innerHTML = CUSTOMERS.map((c) => '<div class="c"><b>#' + c.customerCode + '</b> ' + c.salutation + ' ' + c.lastName + ' · Zimmer ' + c.roomNumber + (c.id === 'c427' ? ' · gestern: Fisch ohne Salat' : '') + '</div>').join('');
+  }
+
+  $('say').addEventListener('submit', (e) => { e.preventDefault(); const v = $('utterance').value.trim(); if (v) say(v); });
+  $('silence').addEventListener('click', () => turn({ utterance: '', now: new Date() }));
+  $('newcall').addEventListener('click', startCall);
+  const showPane = (which) => {
+    $('pane-phone').hidden = which !== 'phone'; $('pane-rest').hidden = which !== 'rest';
+    $('tab-phone').setAttribute('aria-selected', which === 'phone'); $('tab-rest').setAttribute('aria-selected', which === 'rest');
+    if (which === 'rest') $('rest-dot').style.display = 'none';
+  };
+  $('tab-phone').addEventListener('click', () => showPane('phone'));
+  $('tab-rest').addEventListener('click', () => showPane('rest'));
+  if (window.matchMedia('(min-width: 900px)').matches) $('pane-rest').hidden = false;
+
+  renderStatic(); render(); startCall();
+})();
+</script>
+
+</body>
+</html>
