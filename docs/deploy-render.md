@@ -12,6 +12,10 @@ und gibt ihr eine https-Adresse. Alles im Browser, kein Computer nötig.
    * `LUNCH_HANDOFF_NUMBER` — Ihre Handynummer im Format `+49…`, für die Weiterleitung
    * `ANTHROPIC_API_KEY` — optional; ohne Schlüssel läuft nur die Regel-Erkennung
 4. **Apply**. Nach einigen Minuten ist die App unter `https://mittagessen-service-….onrender.com` erreichbar.
+   Die Vorlage nutzt die **kostenlosen** Pläne: kein Geld nötig. Zwei Einschränkungen:
+   der Dienst schläft nach 15 Minuten ohne Aufruf ein und braucht etwa eine Minute
+   zum Aufwachen — **vor dem Anruf zuerst `…/mittag` im Browser öffnen** —, und die
+   kostenlose Datenbank läuft nach 30 Tagen ab (dann Plan wechseln oder Supabase, unten).
 5. `…/mittag` öffnen, mit `ADMIN_EMAIL`/`ADMIN_PASSWORD` anmelden. Die Beispielkunden
    427, 315, 108 und der Speiseplan von heute sind schon da (`SEED_SAMPLE=true`).
 
@@ -36,6 +40,13 @@ Die öffentliche Adresse liest die App selbst aus Renders `RENDER_EXTERNAL_URL`;
 Bei einem Testkonto ruft ein Anruf aus Deutschland eine US-Nummer an
 (Auslandstarif des eigenen Anbieters). Für den Betrieb: Twilio-Konto aufladen und
 eine deutsche Nummer buchen; sonst ändert sich nichts.
+
+## Kostenlose Datenbank ohne Ablauf: Supabase
+
+`https://supabase.com` → New project (Region Frankfurt) → *Project Settings → Database →
+Connection string (URI)*, Modus *Session*, Passwort einsetzen und `?sslmode=require`
+anhängen. In Render unter *Environment* `DATABASE_URL` auf diesen Wert setzen; die
+Render-Datenbank kann dann gelöscht werden. Die App verbindet sich per TLS.
 
 ## Railway statt Render
 

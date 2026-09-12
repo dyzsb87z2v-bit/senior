@@ -4,7 +4,9 @@ services:
   - type: web
     name: mittagessen-service
     runtime: docker
-    plan: starter
+    # Free plan: enough for a test. It sleeps after 15 minutes without traffic and needs
+    # about a minute to wake up, so open the dashboard before you call the number.
+    plan: free
     region: frankfurt
     healthCheckPath: /health
     autoDeploy: true
@@ -35,6 +37,8 @@ services:
         value: info
 databases:
   - name: mittagessen-db
-    plan: basic-256mb
+    # Free databases expire after 30 days. For longer, upgrade the plan or point
+    # DATABASE_URL at a free Supabase database (see docs/deploy-render.md).
+    plan: free
     region: frankfurt
     postgresMajorVersion: "16"
