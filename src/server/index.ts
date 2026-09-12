@@ -9,6 +9,7 @@ import { purgeExpiredSessions } from './auth/session.ts';
 import { getSettings } from './services/settings.ts';
 import { applyRetention } from './services/calls.ts';
 import { addDays, todayInBerlin } from '../domain/dates.ts';
+import { seed } from './db/seed.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -16,6 +17,11 @@ async function main() {
   const config = loadConfig();
   const log = createLogger(config.LOG_LEVEL, !config.isProduction && config.NODE_ENV !== 'test');
   await runMigrations(config.DATABASE_URL, path.resolve(here, '../../drizzle'));
+  // First start: the admin account from ADMIN_EMAIL/ADMIN_PASSWORD (only while no user exists) and, if asked, sample data.
+  if (config.ADMIN_EMAIL && config.ADMIN_PASSWORD) {
+    const seeded = await seed(config.DATABASE_URL, { adminEmail: config.ADMIN_EMAIL, adminPassword: config.ADMIN_PASSWORD, sample: config.SEED_SAMPLE === 'true' });
+    if (seeded.adminCreated || seeded.sampleCreated) log.info(seeded, 'seed');
+  }
   const { db, close } = createDb(config.DATABASE_URL);
   const webDist = path.resolve(here, '../../web/dist');
   const { app } = await buildApp({ config, db, log, webDist });

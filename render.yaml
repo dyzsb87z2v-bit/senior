@@ -1,0 +1,40 @@
+# One-click deployment on Render (https://render.com/deploy?repo=https://github.com/dyzsb87z2v-bit/senior).
+# Creates a PostgreSQL database and the web service; asks only for the values marked sync: false.
+services:
+  - type: web
+    name: mittagessen-service
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mittagessen-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SEED_SAMPLE
+        value: "true"
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: LUNCH_HANDOFF_NUMBER
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LUNCH_AI_MODEL
+        value: claude-fable-5-1
+      - key: LOG_LEVEL
+        value: info
+databases:
+  - name: mittagessen-db
+    plan: basic-256mb
+    region: frankfurt
+    postgresMajorVersion: "16"

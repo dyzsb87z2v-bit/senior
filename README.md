@@ -39,7 +39,22 @@ Node.js 22 · TypeScript · Fastify · PostgreSQL 16 · Drizzle ORM · React · 
 Tailwind · zod · Twilio Programmable Voice · Anthropic SDK (`claude-fable-5-1`) ·
 vitest · Playwright · Docker. Details: [`docs/architecture.md`](docs/architecture.md).
 
-## Lokal starten
+## Schnell ausprobieren (ein Befehl, ohne Telefon)
+
+Mit Docker:
+
+```bash
+git clone https://github.com/dyzsb87z2v-bit/senior && cd senior
+cp .env.example .env                 # ADMIN_PASSWORD und SESSION_SECRET eintragen (SEED_SAMPLE=true lassen)
+docker compose up -d --build
+```
+
+Dann `http://localhost:3000/mittag` öffnen, mit `ADMIN_EMAIL`/`ADMIN_PASSWORD`
+anmelden, ANRUFE → **Anruf starten** und tippen: `427` → `Schnitzel ohne
+Zwiebeln` → `Ja`. Die Bestellung erscheint auf HEUTE und in der KÜCHE, ohne
+Neuladen. Das ist der echte Dialog; nur das Telefon fehlt.
+
+## Lokal starten (Entwicklung)
 
 Voraussetzungen: Node 22.18+, PostgreSQL 16 (oder Docker).
 

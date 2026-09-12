@@ -1,5 +1,7 @@
-# Production stack on one server: PostgreSQL + the app + Caddy (automatic HTTPS).
-# `docker compose up -d --build`, then `docker compose exec app node dist/server/db/seed.js`.
+# Everything in one command.
+#   Local test:  docker compose up -d --build            → http://localhost:3000/mittag
+#   Production:  docker compose --profile https up -d --build  (DOMAIN in .env → https://DOMAIN)
+# The first admin account and, with SEED_SAMPLE=true, sample data are created on start (see .env.example).
 services:
   db:
     image: postgres:16-alpine
@@ -24,11 +26,13 @@ services:
       DATABASE_URL: postgres://postgres:postgres@db:5432/senior_lunch
       HOST: 0.0.0.0
       PORT: "3000"
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     restart: unless-stopped
-  # HTTPS with an automatic Let's Encrypt certificate. Needs DOMAIN in .env and a DNS record pointing here.
+  # HTTPS with an automatic Let's Encrypt certificate: `docker compose --profile https up -d`.
+  # Needs DOMAIN in .env and a DNS record pointing here. Without the profile the app answers on http://localhost:3000.
   caddy:
+    profiles: ["https"]
     image: caddy:2-alpine
     depends_on: [app]
     env_file: .env

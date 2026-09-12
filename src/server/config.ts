@@ -33,12 +33,21 @@ const Env = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   ADMIN_EMAIL: z.string().email().optional(),
   ADMIN_PASSWORD: z.string().min(10).optional(),
+  /** true: create three sample customers and today's sample menu on first start. */
+  SEED_SAMPLE: z.enum(['true', 'false']).default('false'),
 });
 
 export type Config = z.infer<typeof Env> & { isProduction: boolean; allowUnsignedWebhooks: boolean };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  const parsed = Env.safeParse(env);
+  // Hosting platforms announce the public address themselves; use it when PUBLIC_URL is not set.
+  const derived: NodeJS.ProcessEnv = { ...env };
+  if (!derived.PUBLIC_URL) {
+    if (env.RENDER_EXTERNAL_URL) derived.PUBLIC_URL = env.RENDER_EXTERNAL_URL;
+    else if (env.RAILWAY_PUBLIC_DOMAIN) derived.PUBLIC_URL = `https://${env.RAILWAY_PUBLIC_DOMAIN}`;
+    else if (env.FLY_APP_NAME) derived.PUBLIC_URL = `https://${env.FLY_APP_NAME}.fly.dev`;
+  }
+  const parsed = Env.safeParse(derived);
   if (!parsed.success) {
     const lines = parsed.error.issues.map((i) => `  ${i.path.join('.')}: ${i.message}`).join('\n');
     throw new Error(`Invalid environment:\n${lines}`);

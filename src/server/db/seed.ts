@@ -51,7 +51,7 @@ export async function seed(databaseUrl: string, opts: { adminEmail?: string; adm
 
 if (process.argv[1] && /seed\.(ts|js)$/.test(process.argv[1])) {
   const config = loadConfig();
-  seed(config.DATABASE_URL, { adminEmail: config.ADMIN_EMAIL, adminPassword: config.ADMIN_PASSWORD, sample: process.env.SEED_SAMPLE === 'true' })
+  seed(config.DATABASE_URL, { adminEmail: config.ADMIN_EMAIL, adminPassword: config.ADMIN_PASSWORD, sample: config.SEED_SAMPLE === 'true' })
     .then((r) => { console.log(JSON.stringify(r)); })
     .catch((e) => { console.error(e.message); process.exit(1); });
 }
